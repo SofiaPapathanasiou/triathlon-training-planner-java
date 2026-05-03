@@ -5,7 +5,8 @@ public abstract class Workout {
     private final String name;
     private final int durationMinutes;
     private final IntensityZone zone;
-    private final String notes;
+    private String notes;
+    private WorkoutStatus status;
 
     protected Workout(String name, int durationMinutes, IntensityZone zone, String notes){
         if (name == null || name.isBlank()){
@@ -21,6 +22,7 @@ public abstract class Workout {
         this.durationMinutes = durationMinutes;
         this.zone = zone;
         this.notes = notes;
+        this.status = WorkoutStatus.PLANNED;
     }
     public int getLoadScore(){
         return durationMinutes*zone.getLoadMultiplier();
@@ -30,6 +32,9 @@ public abstract class Workout {
     public int getDurationMinutes(){return durationMinutes;}
     public IntensityZone getZone(){return zone;}
     public String getNotes(){return notes;}
+    public void setNotes(String notes) { this.notes = (notes == null) ? "" : notes; }
+    public WorkoutStatus getStatus(){return status;}
+    public void setStatus(WorkoutStatus status){this.status = status;}
 
     @Override
     public String toString(){

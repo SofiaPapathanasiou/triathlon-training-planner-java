@@ -34,9 +34,19 @@ public class TrainingPlan {
         return all;
     }
     public int getTotalLoadScore() {
-        return getAllWorkouts().stream().mapToInt(Workout::getLoadScore).sum();
+        return getAllWorkouts().stream()
+                .filter(w->w.getStatus()== WorkoutStatus.COMPLETED)
+                .mapToInt(Workout::getLoadScore).sum();
+    }
+    public int getCompletedCount(){
+        return (int) getAllWorkouts().stream()
+                .filter(w->w.getStatus() == WorkoutStatus.COMPLETED).count();
     }
 
+    public int getSkippedCount(){
+        return (int) getAllWorkouts().stream()
+                .filter(w->w.getStatus() == WorkoutStatus.SKIPPED).count();
+    }
     public boolean isEmpty() {
         return getAllWorkouts().isEmpty();
     }
