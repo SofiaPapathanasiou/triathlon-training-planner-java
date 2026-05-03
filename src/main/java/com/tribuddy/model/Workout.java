@@ -15,9 +15,6 @@ public abstract class Workout {
         if (durationMinutes <= 0){
             throw new InvalidWorkoutException("Duration must be greater than 0 (got: " + durationMinutes + ").");
         }
-        if (zone == null){
-            throw new InvalidWorkoutException("Intensity zone cannot be null.");
-        }
         this.name = name;
         this.durationMinutes = durationMinutes;
         this.zone = zone;
