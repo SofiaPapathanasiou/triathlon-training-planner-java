@@ -9,6 +9,7 @@ import java.util.*;
 public class Scheduler {
 
     private final ConstraintValidator validator;
+    private static final int MAX_WORKOUTS_PER_DAY = 2;
 
     public Scheduler(ConstraintValidator validator) {
         this.validator = validator;
@@ -22,13 +23,14 @@ public class Scheduler {
         List<DayOfWeek> availableDays = new ArrayList<>(athlete.getAvailableDays());
         availableDays.sort(Comparator.comparingInt(DayOfWeek::getValue));
 
-        if (workouts.size() > availableDays.size()) {
+        // Check if workouts can physically fit (max 2 per day)
+        int maxCapacity = availableDays.size() * MAX_WORKOUTS_PER_DAY;
+        if (workouts.size() > maxCapacity) {
             throw new SchedulingConflictException(
-                    "Cannot schedule " + workouts.size() + " workouts across only "
-                            + availableDays.size() + " available days.");
+                    "Too many workouts (" + workouts.size() + ") for "
+                            + availableDays.size() + " days. Max is " + maxCapacity + ".");
         }
 
-        // Separate weekend and weekday available days
         List<DayOfWeek> weekendDays = availableDays.stream()
                 .filter(d -> d == DayOfWeek.SATURDAY || d == DayOfWeek.SUNDAY)
                 .toList();
@@ -37,31 +39,42 @@ public class Scheduler {
                 .filter(d -> d != DayOfWeek.SATURDAY && d != DayOfWeek.SUNDAY)
                 .toList();
 
-        // Sort workouts hardest first
+        // Sort hardest first
         List<Workout> sorted = new ArrayList<>(workouts);
         sorted.sort(Comparator.comparingInt(w -> w.getZone().getLoadMultiplier()));
         Collections.reverse(sorted);
 
         TrainingPlan plan = new TrainingPlan();
-
-        int weekdayIndex = 0;
-        int weekendIndex = 0;
         boolean hardPlacedOnWeekend = false;
 
         for (Workout w : sorted) {
             boolean isHard = w.getZone() == IntensityZone.Z4_THRESHOLD
                     || w.getZone() == IntensityZone.Z5_VO2MAX;
 
-            if (isHard && !hardPlacedOnWeekend && weekendIndex < weekendDays.size()) {
-                plan.addWorkout(weekendDays.get(weekendIndex++), w);
-                hardPlacedOnWeekend = true;
-            } else if (weekdayIndex < weekdayDays.size()) {
-                plan.addWorkout(weekdayDays.get(weekdayIndex++), w);
-            } else if (weekendIndex < weekendDays.size()) {
-                plan.addWorkout(weekendDays.get(weekendIndex++), w);
-            } else {
-                throw new SchedulingConflictException("Not enough available days to schedule all workouts.");
+            DayOfWeek targetDay = null;
+
+            // Try to place hard workout on weekend first
+            if (isHard && !hardPlacedOnWeekend) {
+                targetDay = findAvailableDay(weekendDays, plan);
+                if (targetDay != null) hardPlacedOnWeekend = true;
             }
+
+            // Otherwise find any available weekday slot
+            if (targetDay == null) {
+                targetDay = findAvailableDay(weekdayDays, plan);
+            }
+
+            // Fall back to any available day
+            if (targetDay == null) {
+                targetDay = findAvailableDay(availableDays, plan);
+            }
+
+            if (targetDay == null) {
+                throw new SchedulingConflictException(
+                        "Could not fit all workouts within the 2-per-day limit.");
+            }
+
+            plan.addWorkout(targetDay, w);
         }
 
         // Validate before returning
@@ -79,11 +92,37 @@ public class Scheduler {
         return plan;
     }
 
+    // Finds the first day that has fewer than MAX_WORKOUTS_PER_DAY workouts
+    private DayOfWeek findAvailableDay(List<DayOfWeek> days, TrainingPlan plan) {
+        for (DayOfWeek day : days) {
+            if (plan.getDayWorkouts(day).size() < MAX_WORKOUTS_PER_DAY) {
+                return day;
+            }
+        }
+        return null;
+    }
+
+    public TrainingPlan moveWorkout(TrainingPlan plan, DayOfWeek fromDay,
+                                    int workoutIndex, DayOfWeek toDay) {
+        List<Workout> fromWorkouts = plan.getDayWorkouts(fromDay);
+
+        if (workoutIndex < 0 || workoutIndex >= fromWorkouts.size()) {
+            throw new SchedulingConflictException("No workout at that index.");
+        }
+        if (plan.getDayWorkouts(toDay).size() >= MAX_WORKOUTS_PER_DAY) {
+            throw new SchedulingConflictException(
+                    toDay + " already has " + MAX_WORKOUTS_PER_DAY + " workouts.");
+        }
+
+        Workout workout = fromWorkouts.get(workoutIndex);
+        plan.removeWorkout(fromDay, workoutIndex);
+        plan.addWorkout(toDay, workout);
+        return plan;
+    }
+
     public TrainingPlan handleMissedWorkout(TrainingPlan plan, Athlete athlete, DayOfWeek missedDay) {
         List<Workout> missed = new ArrayList<>(plan.getDayWorkouts(missedDay));
-        if (missed.isEmpty()) {
-            return plan;
-        }
+        if (missed.isEmpty()) return plan;
 
         for (int i = missed.size() - 1; i >= 0; i--) {
             plan.removeWorkout(missedDay, i);
@@ -95,7 +134,7 @@ public class Scheduler {
         DayOfWeek rescheduleDay = null;
         for (DayOfWeek day : availableDays) {
             if (day.getValue() > missedDay.getValue()
-                    && plan.getDayWorkouts(day).isEmpty()) {
+                    && plan.getDayWorkouts(day).size() < MAX_WORKOUTS_PER_DAY) {
                 rescheduleDay = day;
                 break;
             }

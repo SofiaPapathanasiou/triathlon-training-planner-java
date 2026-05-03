@@ -1,8 +1,8 @@
 package com.tribuddy.model;
 
 public class StrengthWorkout extends Workout{
-    public StrengthWorkout(String name, int durationMinutes, IntensityZone zone, String notes){
-        super(name, durationMinutes, zone, notes);
+    public StrengthWorkout(String name, int durationMinutes, String notes) {
+        super(name, durationMinutes, null, notes);
     }
 
     @Override

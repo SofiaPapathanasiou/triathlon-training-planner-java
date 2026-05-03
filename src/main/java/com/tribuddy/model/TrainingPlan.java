@@ -38,6 +38,9 @@ public class TrainingPlan {
                 .filter(w->w.getStatus()== WorkoutStatus.COMPLETED)
                 .mapToInt(Workout::getLoadScore).sum();
     }
+    public int getPlannedLoadScore() {
+        return getAllWorkouts().stream().mapToInt(Workout::getLoadScore).sum();
+    }
     public int getCompletedCount(){
         return (int) getAllWorkouts().stream()
                 .filter(w->w.getStatus() == WorkoutStatus.COMPLETED).count();
@@ -79,7 +82,8 @@ public class TrainingPlan {
                 }
             }
         }
-        sb.append("Total load score: ").append(getTotalLoadScore());
+        sb.append("Planned load: ").append(getPlannedLoadScore());
+        sb.append(" | Completed load: ").append(getTotalLoadScore());
         return sb.toString();
     }
 }

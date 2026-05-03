@@ -24,8 +24,11 @@ public abstract class Workout {
         this.notes = notes;
         this.status = WorkoutStatus.PLANNED;
     }
-    public int getLoadScore(){
-        return durationMinutes*zone.getLoadMultiplier();
+    public int getLoadScore() {
+        if (zone != null) {
+            return durationMinutes * zone.getLoadMultiplier();
+        }
+        return durationMinutes * 5;
     }
     public abstract String getType();
     public String getName(){return name;}

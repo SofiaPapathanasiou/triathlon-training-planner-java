@@ -105,8 +105,8 @@ public class JdbcWorkoutDao implements WorkoutDao {
             case "Swim"     -> new SwimWorkout(name, duration, zone, notes);
             case "Bike"     -> new BikeWorkout(name, duration, zone, notes);
             case "Run"      -> new RunWorkout(name, duration, zone, notes);
-            case "Strength" -> new StrengthWorkout(name, duration, zone, notes);
-            case "Recovery" -> new RecoveryWorkout(name, duration, zone, notes);
+            case "Strength" -> new StrengthWorkout(name, duration, notes);
+            case "Recovery" -> new RecoveryWorkout(name, duration, notes);
             default -> throw new DatabaseOperationException("Unknown workout type: " + type);
         };
 

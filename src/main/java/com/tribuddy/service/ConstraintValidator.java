@@ -17,6 +17,7 @@ public class ConstraintValidator {
         results.addAll(checkConsecHardDays(plan));
         results.addAll(checkDailyVolume(plan));
         results.addAll(checkRecoveryDay(plan));
+        results.addAll(checkMaxWorkoutsPerDay(plan));
         return results;
     }
     public boolean isValid(TrainingPlan plan){
@@ -69,6 +70,21 @@ public class ConstraintValidator {
         return List.of(new ValidationResult(true, "Recovery day present."));
     }
 
+    private List<ValidationResult> checkMaxWorkoutsPerDay(TrainingPlan plan) {
+        List<ValidationResult> results = new ArrayList<>();
+
+        for (DayOfWeek day : DayOfWeek.values()) {
+            if (plan.getDayWorkouts(day).size() > 2) {
+                results.add(new ValidationResult(false,
+                        day + " has more than 2 workouts scheduled."));
+            }
+        }
+
+        if (results.isEmpty()) {
+            results.add(new ValidationResult(true, "Workout count per day is within limits."));
+        }
+        return results;
+    }
     private boolean isHardDay(TrainingPlan plan, DayOfWeek day) {
         return plan.getDayWorkouts(day).stream()
                 .anyMatch(w -> w.getZone() == IntensityZone.Z4_THRESHOLD
