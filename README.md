@@ -93,9 +93,9 @@ src/
 
 ### Why `abstract Workout` with 5 subclasses?
 
-Making `Workout` abstract enforces the rule that you can never schedule a "generic" workout — it must be a specific type (Swim, Bike, Run, etc.). This enables polymorphism throughout the codebase: `FatigueCalculator`, `ConstraintValidator`, and the database layer all operate on `Workout` without knowing the specific subclass. `getType()` and `getLoadScore()` behave differently per subclass, which is polymorphism in action.
+Making `Workout` abstract enforces the rule that you can never schedule a "generic" workout, it must be a specific type (Swim, Bike, Run, etc.). This enables polymorphism throughout the codebase: `FatigueCalculator`, `ConstraintValidator`, and the database layer all operate on `Workout` without knowing the specific subclass. `getType()` and `getLoadScore()` behave differently per subclass, which is polymorphism in action.
 
-`StrengthWorkout` and `RecoveryWorkout` pass `null` for zone because their intensity is fixed by definition — recovery is always easy (Z1), and strength follows a non-aerobic load model. This is a deliberate design choice that reflects real triathlon coaching principles.
+`StrengthWorkout` and `RecoveryWorkout` pass `null` for zone because their intensity is fixed by definition (recovery is always easy (Z1), and strength follows a non-aerobic load model). This is a deliberate design choice that reflects real triathlon coaching principles.
 
 ### Why `IntensityZone` enum instead of a 1–10 scale?
 
