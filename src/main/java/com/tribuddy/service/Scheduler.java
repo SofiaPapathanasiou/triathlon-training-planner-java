@@ -41,15 +41,15 @@ public class Scheduler {
 
         // Sort hardest first
         List<Workout> sorted = new ArrayList<>(workouts);
-        sorted.sort(Comparator.comparingInt(w -> w.getZone().getLoadMultiplier()));
+        sorted.sort(Comparator.comparingInt(w -> w.getZone() != null ? w.getZone().getLoadMultiplier() : 0));
         Collections.reverse(sorted);
 
         TrainingPlan plan = new TrainingPlan();
         boolean hardPlacedOnWeekend = false;
 
         for (Workout w : sorted) {
-            boolean isHard = w.getZone() == IntensityZone.Z4_THRESHOLD
-                    || w.getZone() == IntensityZone.Z5_VO2MAX;
+            boolean isHard = w.getZone() != null && (w.getZone() == IntensityZone.Z4_THRESHOLD
+                    || w.getZone() == IntensityZone.Z5_VO2MAX);
 
             DayOfWeek targetDay = null;
 
