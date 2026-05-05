@@ -38,6 +38,7 @@ public abstract class Workout {
 
     @Override
     public String toString(){
-        return String.format("[%s] %s — %d min, %s (load %d)", getType(), name, durationMinutes, zone, getLoadScore());
+        String zoneStr = (zone != null) ? zone.toString() : "N/A";
+        return String.format("[%s] %s — %d min, %s (load %d)", getType(), name, durationMinutes, zoneStr, getLoadScore());
     }
 }
